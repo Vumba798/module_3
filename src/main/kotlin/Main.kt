@@ -1,6 +1,7 @@
 fun main(args: Array<String>) {
-    println("Hello World!")
 
-    // Try adding program arguments at Run/Debug configuration
-    println("Program arguments: ${args.joinToString()}")
+    val tmp = mutableListOf<Int>()
+    tmp.add(0, 2)
+    tmp.add(0, 1)
+    println(tmp)
 }
