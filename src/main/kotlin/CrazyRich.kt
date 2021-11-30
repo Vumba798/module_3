@@ -65,7 +65,12 @@ class CrazyRich(private val money: Long) {
 }
 
 fun main() {
-    val answer = CrazyRich(4).getAnswer()
+    val scanner = Scanner(System.`in`)
+    val money = scanner.nextLong()
+
+    val solver = CrazyRich(money)
+    val answer = solver.getAnswer()
+
     while (answer.size > 0) {
         when(answer.pop()) {
             Operation.INC -> println("inc")
