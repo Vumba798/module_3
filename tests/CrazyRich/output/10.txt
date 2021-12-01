@@ -1,0 +1,5 @@
+inc
+dbl
+dbl
+inc
+dbl

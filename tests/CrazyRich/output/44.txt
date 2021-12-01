@@ -1,0 +1,8 @@
+inc
+dbl
+inc
+dbl
+dbl
+dec
+dbl
+dbl
