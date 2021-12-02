@@ -6,14 +6,35 @@ import kotlin.test.assertEquals
 class Test {
     fun testKnapSackSolver(number: Int) {
         val scanner = Scanner(File("tests/KnapsackSolver/input/$number.txt"))
-        val capacity = scanner.nextInt()
-        val solver = KnapsackSolver(capacity)
         val writer = File("tests/KnapsackSolver/myOutput/$number.txt").bufferedWriter().use {
+            var str = ""
+            while (scanner.hasNextLine()) {
+                try {
+                    str = scanner.nextLine()
+                    if (str.isEmpty()) continue
+                    for (symbol in str) {
+                        if (!symbol.isDigit()) throw IllegalArgumentException()
+                    }
+                    break
+                } catch (exception: Exception) {
+                    it.write("error\n")
+                }
+            }
+            val capacity = str.toInt()
+            val solver = KnapsackSolver(capacity)
+
             try {
-                while (scanner.hasNextInt()) {
-                    val weight = scanner.nextInt()
-                    val cost = scanner.nextInt()
-                    solver.insert(weight, cost)
+                while (scanner.hasNext()) {
+                    try {
+                        val str = scanner.nextLine()
+                        if (str.isEmpty()) continue
+                        val parsedValues = parseInput(str)
+                        val weight = parsedValues.first
+                        val cost = parsedValues.second
+                        solver.insert(weight, cost)
+                    } catch (exception: Exception) {
+                        it.write("error\n")
+                    }
                 }
                 val answer = solver.calculate()
                 it.write("${answer.totalWeight} ${answer.totalCost}\n")
@@ -44,7 +65,7 @@ class Test {
 
     @Test
     fun testOutput() {
-        for (i in 1..16) {
+       for (i in 1..16) {
             println("test #$i")
             testKnapSackSolver(i)
             val sc1 = Scanner(File("tests/KnapsackSolver/myOutput/$i.txt"))

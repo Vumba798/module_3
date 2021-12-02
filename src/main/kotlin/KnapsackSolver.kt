@@ -1,7 +1,3 @@
-import java.io.BufferedWriter
-import java.io.OutputStream
-import java.io.OutputStreamWriter
-import java.lang.Integer.max
 import java.util.*
 
 class KnapsackSolver(private var capacity: Int) {
@@ -11,13 +7,11 @@ class KnapsackSolver(private var capacity: Int) {
     )
     data class TakenItems(var indexes: BitSet) {
         var cost = 0
+        var weight = 0
     }
     private var items = mutableListOf<Item>()
     private var dp = mutableListOf<TakenItems>()
-    private var listOfIndexes = mutableListOf<Int>() // we will hold the answer with indexes of items
-    private var totalWeight = 0
     private var weightGcd = 0
-
 
     fun insert(weight: Int, cost: Int) {
         items.add(Item(weight, cost))
@@ -62,16 +56,24 @@ class KnapsackSolver(private var capacity: Int) {
         }
         for (i in 0 until items.size) {
             for (j in capacity downTo 0) {
-                if (items[i].weight == j) {
+                if (items[i].weight == 0) {
+                    dp[j].indexes.set(i)
+                    dp[j].cost += items[i].cost
+                } else if (items[i].weight == j) {
                     if (items[i].cost > dp[j].cost) {
-                        dp[j].cost = items[i].cost
+                        dp[j].cost = items[i].cost + dp[0].cost
                         dp[j].indexes.clear()
+                        //logic or for setting up all 0-weight items
+                        dp[j].indexes.or(dp[0].indexes)
                         dp[j].indexes.set(i)
+                        dp[j].weight = items[i].weight
                     }
                 } else if (items[i].weight < j) {
                     if (items[i].cost + dp[j - items[i].weight].cost > dp[j].cost) {
                         dp[j].indexes.clear()
+                        // logic or
                         dp[j].indexes.or(dp[j - items[i].weight].indexes)
+                        dp[j].weight = items[i].weight + dp[j - items[i].weight].weight
                         dp[j].indexes.set(i)
                         dp[j].cost = items[i].cost + dp[j - items[i].weight].cost
                     }
@@ -80,65 +82,9 @@ class KnapsackSolver(private var capacity: Int) {
         }
     }
 
-
-    /*
-    private fun fillTable() {
-        val rows = items.size
-        val columns = capacity
-        println("Im ready!")
-        //inits first item
-        for (j in 0 until columns) {
-            // fills first item
-            if (items[0].weight <= j + 1) {
-                table[0].add(items[0].cost)
-            } else {
-                table[0].add(0)
-            }
-        }
-        for (i in 1 until rows) {
-            //todo works bad
-            table.add(mutableListOf())
-            for (j in 0 until columns) {
-                if (items[i].weight > j + 1) {
-                    table[i].add(table[i - 1][j])
-                } else if (items[i].weight == j + 1) {
-                    table[i].add(max(table[i - 1][j], items[i].cost))
-                } else {
-                    table[i].add(max(table[i - 1][j], items[i].cost + table[i - 1][j - items[i].weight]))
-                }
-            }
-        }
-
-    }
-    */
-
-    /*
-    private fun getListOfIndexes() {
-        val rows = items.size
-        val columns = capacity
-
-        var i = rows - 1
-        var j = columns - 1
-        while (i >= 0 && j >= 0 && table[i][j] > 0) {
-            if (i == 0 && table[i][j] > 0) {
-                listOfIndexes.add(0, i)
-                items[i].weight
-                break
-            }
-            if (table[i][j] == table[i - 1][j]) {
-                i--
-            } else {
-                listOfIndexes.add(0, i)
-                totalWeight += items[i].weight
-                j -= items[i].weight
-                i--
-            }
-        }
-    }
-*/
     fun formResult(): Result {
         val totalCost = dp.last().cost
-        val totalWeight = dp.lastIndex * weightGcd
+        val totalWeight = dp.last().weight * weightGcd
 
         var indexes = mutableListOf<Int>()
         var tmpIndex = dp.last().indexes.nextSetBit(0)
@@ -153,31 +99,38 @@ class KnapsackSolver(private var capacity: Int) {
         val totalCost: Int,
         val indexes: List<Int>
     )
-    /*
-    fun print(out: OutputStream) {
-        // TODO remove
-        val writer = BufferedWriter(OutputStreamWriter(out))
-        var rows = items.size
-        var columns = capacity
-        for (i in 0 until rows) {
-            for (j in 0 until columns) {
-                print(table[i][j])
-                print(" ")
-            }
-            println()
-        }
-    }
-     */
 }
 
 fun main() {
     val scanner = Scanner(System.`in`)
-    val capacity = scanner.nextInt()
+    var stringWithCapacity = ""
+    while (scanner.hasNextLine()) {
+        try {
+            stringWithCapacity = scanner.nextLine()
+            if (stringWithCapacity.isEmpty()) continue
+            for (symbol in stringWithCapacity) {
+                if (!symbol.isDigit()) throw IllegalArgumentException()
+            }
+            break
+        } catch (exception: Exception) {
+            println("error")
+        }
+    }
+    val capacity = stringWithCapacity.toInt()
     val solver = KnapsackSolver(capacity)
-    while (scanner.hasNext()) {
-        val weight = scanner.nextInt()
-        val cost = scanner.nextInt()
-        solver.insert(weight, cost)
+    while (scanner.hasNextLine()) {
+        try {
+            val stringWithWeightAndCost = scanner.nextLine()
+
+            if (stringWithWeightAndCost.isEmpty()) continue
+
+            val parsedValues = parseInput(stringWithWeightAndCost)
+            val weight = parsedValues.first
+            val cost = parsedValues.second
+            solver.insert(weight, cost)
+        } catch (exception: Exception) {
+            println("error")
+        }
     }
     val answer = solver.calculate()
     print(answer.totalWeight)
@@ -186,4 +139,19 @@ fun main() {
     for (index in answer.indexes) {
         println(index)
     }
+}
+
+fun parseInput(input: String): Pair<Int, Int> {
+    if (!input[0].isDigit()) throw IllegalArgumentException()
+    var indexOfSpace = -1
+    for ((index, symbol) in input.withIndex()) {
+        if (symbol == ' ' && index != input.lastIndex) {
+            if (indexOfSpace != -1) throw IllegalArgumentException() // if input has more than one ' ' symbol
+            indexOfSpace = index
+        } else if (!symbol.isDigit()) throw IllegalArgumentException()
+    }
+    if (indexOfSpace == -1) throw IllegalArgumentException()
+    val weight = input.substring(0, indexOfSpace).toInt()
+    val cost = input.substring(indexOfSpace + 1,input.length).toInt()
+    return Pair(weight, cost)
 }

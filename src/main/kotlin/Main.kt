@@ -1,10 +1,10 @@
 import java.util.*
 
 fun main(args: Array<String>) {
+    val scanner = Scanner(System.`in`)
 
-    val tmp = BitSet(110)
-    val tmp1 = BitSet(110)
-    tmp.set(3)
+    val tmp = "hi he"
+    println(tmp.substring(3, tmp.length))
 }
  fun getGCD(): Int { // returns greater common divisor of all items' weights
     var items = mutableListOf(8,4)
